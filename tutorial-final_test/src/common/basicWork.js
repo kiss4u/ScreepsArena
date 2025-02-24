@@ -3,6 +3,13 @@ import {myAttackers, myWorkers, source} from "./global";
 import {createConstructionSite, findClosestByRange, getObjectsByPrototype} from "game/utils";
 import {ConstructionSite, StructureTower} from "game/prototypes";
 
+/**
+ * 挖矿
+ * @param miners
+ * @param spawn
+ * @param container
+ * @param source
+ */
 export function doMining(miners, spawn, container, source) {
     for (let miner of miners) {
         if (miner.store[RESOURCE_ENERGY] < miner.store.getCapacity()) {
@@ -12,7 +19,7 @@ export function doMining(miners, spawn, container, source) {
         } else {
             if (spawn.store === spawn.store.getCapacity()) {
                 console.log("基地能量已储满", spawn.store)
-                if(!container) {
+                if (!container) {
                     goTransfer(miner, container);
                 }
             }
@@ -21,6 +28,11 @@ export function doMining(miners, spawn, container, source) {
     }
 }
 
+/**
+ * 运输
+ * @param creep
+ * @param target
+ */
 function goTransfer(creep, target) {
     let result = creep.transfer(target, RESOURCE_ENERGY);
     if (result === ERR_NOT_IN_RANGE) {
@@ -30,10 +42,19 @@ function goTransfer(creep, target) {
     }
 }
 
+/**
+ * 空闲工人
+ * @returns {*}
+ */
 export function getAvailableWorker() {
     return myWorkers[1];
 }
 
+/**
+ * 建造
+ * @param pox
+ * @param poy
+ */
 export function createBuilding(pox, poy) {
     let worker = getAvailableWorker();
     if (!worker) {
@@ -77,7 +98,7 @@ export function createTower(builder, posX, posY) {
     if (!constructionSite) {
         constructionSite = createConstructionSite({x: posX, y: posY}, StructureTower).object;
     }
-    if(checkWorkerEnergy(builder)) {
+    if (checkWorkerEnergy(builder)) {
         if (builder.build(constructionSite) === ERR_NOT_IN_RANGE) {
             builder.moveTo(constructionSite);
         }

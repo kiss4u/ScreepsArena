@@ -1,28 +1,39 @@
+import * as strategyTest from "./src/testMain.js";
 import * as strategyDefault from "./src/strategyDefault/defaultMain.js";
 import * as strategyRadical from "./src/strategyRadical/radicalMain.js";
-
-let strategy;
+import {getRandomInt} from "./src/util/randomUtil.js";
 
 export function loop() {
-    if (!strategy) {
-        strategy = getRandomInt(1, 2);
-    }
-    strategyDefault.run();
-    // console.log("本局执行策略", strategy);
-    // if (strategy === 1) {
-    //     strategyDefault.run();
-    // } else {
-    //     strategyRadical.run();
-    // }
+    randomDoStrategy(1, 1).run();
 }
 
-/*
-    生成随机数
+// 战术
+let strategy;
+
+/**
+ * 随机一个战术
+ * @param strategyFrom
+ * @param strategyTo
+ * @returns {{run?: function(), object?: function(): this}|{run?: function(): void, object?: function(): this}|{run?: function(): void, object?: function(): this}}
  */
-function getRandomInt(min, max) {
-    min = Math.ceil(min); // 将最小值向上取整
-    max = Math.floor(max); // 将最大值向下取整
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+function randomDoStrategy(strategyFrom, strategyTo) {
+    if (!strategy) {
+        strategy = formatStrategy(getRandomInt(strategyFrom, strategyTo)).object();
+    }
+    return strategy;
+}
+
+function formatStrategy(num) {
+    switch (num) {
+        case 0:
+            return strategyTest;
+        case 1:
+            return strategyDefault;
+        case 2:
+            return strategyRadical;
+        default:
+            return strategyDefault;
+    }
 }
 
 

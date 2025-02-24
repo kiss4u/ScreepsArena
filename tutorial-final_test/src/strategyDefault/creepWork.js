@@ -1,8 +1,8 @@
 import {minerSize, myMiners, mySpawn, myWorkers, source, workerSize} from "../common/global";
 import {doMining} from "../common/basicWork";
 
-/*
-    采集能量
+/**
+ * 采集建造
  */
 export function doWork() {
     for (let i = 0; i < myWorkers.length; i++) {

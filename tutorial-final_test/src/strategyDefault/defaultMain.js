@@ -5,8 +5,12 @@ import {doAttack} from "./creepAttack";
 import {doHeal} from "./creepHeal";
 import {doDefence} from "./creepDefence";
 
+export function object() {
+    console.log("标准战术：农民工人军人比例1:1:1");
+    return this;
+}
+
 export function run() {
-    // createRallyFlag(myAttackers[1], mySpawn.x + 2, mySpawn.y + 2);
     //
     freshCreepInfo();
     //
