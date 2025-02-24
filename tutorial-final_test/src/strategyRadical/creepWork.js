@@ -1,5 +1,5 @@
 import {minerSize, myMiners, mySpawn, myWorkers, source, workerSize} from "../common/global";
-import {createBuilding, doMining} from "../common/basicWork";
+import {doMining} from "../common/basicWork";
 
 /**
  * 采集建造
@@ -17,8 +17,4 @@ export function doWork() {
     }
     //
     doMining(myMiners, mySpawn, null, source);
-
-    // createRallyFlag(mySpawn.x - 1, mySpawn.y - 1);
-
-    createBuilding(mySpawn.x - 3, mySpawn.y - 3);
 }

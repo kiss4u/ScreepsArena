@@ -28,16 +28,16 @@ export let creepCreateQueue = [];
 export let buildingQueue = [];
 
 // 兵种基数
-export let minerSize = 2;
-export let workerSize =  1;
-export let attackerSize = 2;
-export let rangeAttackerSize = 2;
-export let healerSize = 2;
-export let defenderSize = 2;
+export let minerSize = 1;
+export let workerSize = 2;
+export let attackerSize = 0;
+export let rangeAttackerSize = 0;
+export let healerSize = 0;
+export let defenderSize = 0;
 
 // 兵种基础属性
 export const minerBody = [WORK, WORK, CARRY, CARRY, MOVE, MOVE, WORK];
-export const workerBody = [WORK, WORK, CARRY, CARRY, MOVE, MOVE, CARRY];
+export const workerBody = [WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, CARRY];
 export const attackerBody = [TOUGH, TOUGH, MOVE, MOVE, ATTACK];
 export const rangeAttackerBody = [TOUGH, TOUGH, MOVE, MOVE, RANGED_ATTACK];
 export const healerBody = [TOUGH, TOUGH, MOVE, MOVE, HEAL];
@@ -119,6 +119,23 @@ function filterCreepInfo(type, creeps, creepWork, creepAttack, creepAttackRange,
         "远程：", creepAttackRange.length,
         "治疗：", creepHeal.length,
         "其他：", creepOther.length);
+}
+
+export function freshMiners() {
+    let tempMiners = [];
+    for (let i = 0; i < myWorkers.length && tempMiners.length < minerSize; i++) {
+        let worker = myWorkers[i];
+        if (!myMiners.includes(worker)) {
+            tempMiners.push(worker);
+        }
+    }
+    tempMiners.forEach(miner => {
+        myMiners.push(miner);
+        let index = myWorkers.indexOf(miner);
+        if (index !== -1) {
+            myWorkers.splice(index, 1); // 安全移除
+        }
+    });
 }
 
 export function incrementCreepNum() {

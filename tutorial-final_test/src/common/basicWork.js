@@ -1,5 +1,11 @@
-import {ERR_FULL, ERR_NOT_IN_RANGE, RESOURCE_ENERGY} from "game/constants";
-import {myAttackers, myWorkers, source} from "./global";
+import {
+    ERR_FULL,
+    ERR_INVALID_TARGET,
+    ERR_NOT_ENOUGH_RESOURCES,
+    ERR_NOT_IN_RANGE,
+    RESOURCE_ENERGY
+} from "game/constants";
+import {creepCreateQueue, minerSize, myAttackers, myMiners, myWorkers, source, workerSize} from "./global";
 import {createConstructionSite, findClosestByRange, getObjectsByPrototype} from "game/utils";
 import {ConstructionSite, StructureTower} from "game/prototypes";
 
@@ -47,26 +53,26 @@ function goTransfer(creep, target) {
  * @returns {*}
  */
 export function getAvailableWorker() {
-    return myWorkers[1];
+    for (let worker of myWorkers) {
+        console.log("getAvailableWorker", worker.id, worker.event);
+        getEnergy(worker);
+        if (worker.event === 'ready') {
+            return worker;
+        }
+        if (worker.event === '' || worker.store[RESOURCE_ENERGY] < worker.store.getCapacity()) {
+            getEnergy();
+        }
+    }
+    return null;
 }
 
 /**
- * 建造
- * @param pox
- * @param poy
+ * 检查worker身上能量是否可以建造
+ * @param worker
+ * @returns {boolean}
  */
-export function createBuilding(pox, poy) {
-    let worker = getAvailableWorker();
-    if (!worker) {
-        console.log("当前无空闲工人");
-        return;
-    }
-    //
-    createTower(worker, pox, poy);
-}
-
 function checkWorkerEnergy(worker) {
-    if (worker.event !== 'harvesting') {
+    if (worker.event === 'ready') {
         let current = worker.store[RESOURCE_ENERGY];
         if (current > 0 && current <= worker.store.getCapacity()) {
             return true;
@@ -77,30 +83,59 @@ function checkWorkerEnergy(worker) {
     return false;
 }
 
+/**
+ * worker装载能量，取满后待命
+ * @param worker
+ * @param target
+ */
 function getEnergy(worker, target) {
     if (!worker) {
         console.log("执行命令的worker不存在");
         return;
     }
     if (worker.store[RESOURCE_ENERGY] === worker.store.getCapacity()) {
-        worker.event = '';
+        worker.event = 'ready';
         return;
     }
-    worker.event = 'harvesting';
-    console.log(worker.event);
     if (worker.harvest(target) === ERR_NOT_IN_RANGE) {
         worker.moveTo(target);
     }
+    worker.event = 'harvesting';
 }
 
+/**
+ * 建造防御塔
+ * @param builder
+ * @param posX
+ * @param posY
+ */
 export function createTower(builder, posX, posY) {
-    let constructionSite = getObjectsByPrototype(ConstructionSite).find(i => i.my);
-    if (!constructionSite) {
+    let constructionSite = getObjectsByPrototype(ConstructionSite).filter(i => i.my);
+    if (!constructionSite || constructionSite.length < 10) {
         constructionSite = createConstructionSite({x: posX, y: posY}, StructureTower).object;
     }
     if (checkWorkerEnergy(builder)) {
-        if (builder.build(constructionSite) === ERR_NOT_IN_RANGE) {
+        let result = builder.build(constructionSite);
+        console.log("createTower", result);
+        if (result === ERR_NOT_IN_RANGE) {
             builder.moveTo(constructionSite);
+        } else if (result === ERR_INVALID_TARGET) {
+
         }
     }
 }
+
+export function buildaaaaaTower(target) {
+    let constructionSite = getObjectsByPrototype(ConstructionSite).find(i => i.my);
+    let creep = getAvailableWorker();
+    let result = creep.build(constructionSite);
+    if (result === ERR_NOT_IN_RANGE) {
+        creep.moveTo(constructionSite);
+    }
+    if (result === ERR_NOT_ENOUGH_RESOURCES) {
+        if (creep.withdraw(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+            creep.moveTo(target);
+        }
+    }
+}
+
