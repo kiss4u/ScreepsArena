@@ -12,6 +12,8 @@ declare module "game/prototypes" {
         error?: typeof ERR_NOT_OWNER | typeof ERR_INVALID_ARGS | typeof ERR_NOT_ENOUGH_ENERGY | typeof ERR_BUSY | undefined;
     }
 
+    type SetDirectionsResult = typeof OK | typeof ERR_NOT_OWNER | typeof ERR_INVALID_ARGS;
+
     /** Details of the creep being spawned currently */
     export class Spawning {
         /** Time needed in total to complete the spawning */
@@ -34,6 +36,15 @@ declare module "game/prototypes" {
 
         /** If the spawn is in process of spawning a new creep, this object will contain a {@link Spawning} object, or null otherwise */
         spawning: Spawning;
+
+        /** The directions in which the spawn can create creeps */
+        directions: DirectionConstant[];
+
+        /**
+         * Set the directions in which the spawn can create creeps
+         * @param directions An array of direction constants
+         */
+        setDirections(directions: DirectionConstant[]): SetDirectionsResult;
 
         /**
          * Start the creep spawning process

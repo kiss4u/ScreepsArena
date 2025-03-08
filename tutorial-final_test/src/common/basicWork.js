@@ -5,7 +5,7 @@ import {
     ERR_NOT_IN_RANGE,
     RESOURCE_ENERGY
 } from "game/constants";
-import {creepCreateQueue, minerSize, myAttackers, myMiners, myWorkers, source, workerSize} from "./global";
+import {creepCreateQueue, minerSize, myAttackers, myMiners, myWorkers, workerSize} from "./global";
 import {createConstructionSite, findClosestByRange, getObjectsByPrototype} from "game/utils";
 import {ConstructionSite, StructureTower} from "game/prototypes";
 
@@ -17,20 +17,43 @@ import {ConstructionSite, StructureTower} from "game/prototypes";
  * @param source
  */
 export function doMining(miners, spawn, container, source) {
-    for (let miner of miners) {
-        if (miner.store[RESOURCE_ENERGY] < miner.store.getCapacity()) {
-            if (miner.harvest(source) === ERR_NOT_IN_RANGE) {
-                miner.moveTo(source);
-            }
-        } else {
-            if (spawn.store === spawn.store.getCapacity()) {
-                console.log("基地能量已储满", spawn.store)
-                if (!container) {
-                    goTransfer(miner, container);
-                }
-            }
-            goTransfer(miner, spawn);
+    if (source) {
+        for (let miner of miners) {
+            getFromSource(miner, spawn, container, source);
         }
+        return;
+    }
+    if (container) {
+        for (let miner of miners) {
+            getFromContainer(miner, spawn, container);
+        }
+    }
+}
+
+function getFromSource(miner, spawn, container, source) {
+    if (miner.store[RESOURCE_ENERGY] < miner.store.getCapacity()) {
+        if (miner.harvest(source) === ERR_NOT_IN_RANGE) {
+            miner.moveTo(source);
+        }
+    } else {
+        if (spawn.store === spawn.store.getCapacity()) {
+            console.log("基地能量已储满", spawn.store)
+            if (!container) {
+                goTransfer(miner, source);
+            }
+        }
+        goTransfer(miner, spawn);
+    }
+}
+
+function getFromContainer(miner, spawn, container) {
+    if (miner.store[RESOURCE_ENERGY] < miner.store.getCapacity()) {
+        console.log("getFromContainer", miner.withdraw(container, RESOURCE_ENERGY))
+        if (miner.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+            miner.moveTo(container);
+        }
+    } else {
+        goTransfer(miner, spawn);
     }
 }
 
@@ -52,15 +75,13 @@ function goTransfer(creep, target) {
  * 空闲工人
  * @returns {*}
  */
-export function getAvailableWorker() {
+export function getAvailableWorker(target) {
     for (let worker of myWorkers) {
         console.log("getAvailableWorker", worker.id, worker.event);
-        getEnergy(worker);
-        if (worker.event === 'ready') {
+        if (worker.event === 'ready' && worker.store[RESOURCE_ENERGY] > 0) {
             return worker;
-        }
-        if (worker.event === '' || worker.store[RESOURCE_ENERGY] < worker.store.getCapacity()) {
-            getEnergy();
+        } else {
+            getEnergy(worker, target);
         }
     }
     return null;
@@ -98,9 +119,9 @@ function getEnergy(worker, target) {
         return;
     }
     if (worker.harvest(target) === ERR_NOT_IN_RANGE) {
+        worker.event = 'harvesting';
         worker.moveTo(target);
     }
-    worker.event = 'harvesting';
 }
 
 /**

@@ -1,5 +1,5 @@
 import {getObjectsByPrototype} from 'game/utils';
-import {Creep, Source, StructureSpawn} from 'game/prototypes';
+import {Creep, Source, StructureContainer, StructureSpawn} from 'game/prototypes';
 import {MOVE, ATTACK, RANGED_ATTACK, TOUGH, HEAL, WORK, CARRY} from "game/constants";
 
 // 我方兵种列表
@@ -28,23 +28,27 @@ export let creepCreateQueue = [];
 export let buildingQueue = [];
 
 // 兵种基数
-export let minerSize = 1;
-export let workerSize = 2;
-export let attackerSize = 0;
-export let rangeAttackerSize = 0;
-export let healerSize = 0;
+export let minerSize = 2;
+export let workerSize = 1;
+export let attackerSize = 2;
+export let rangeAttackerSize = 2;
+export let healerSize = 2;
 export let defenderSize = 0;
 
 // 兵种基础属性
-export const minerBody = [WORK, WORK, CARRY, CARRY, MOVE, MOVE, WORK];
-export const workerBody = [WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, CARRY];
+export const minerBody = [WORK, WORK, CARRY, CARRY, MOVE, MOVE, CARRY];
+export const workerBody = [WORK, WORK, CARRY, CARRY, MOVE, MOVE, WORK];
 export const attackerBody = [TOUGH, TOUGH, MOVE, MOVE, ATTACK];
 export const rangeAttackerBody = [TOUGH, TOUGH, MOVE, MOVE, RANGED_ATTACK];
 export const healerBody = [TOUGH, TOUGH, MOVE, MOVE, HEAL];
 export const defenderBody = [TOUGH, TOUGH, TOUGH, TOUGH, ATTACK, MOVE];
 
 // 矿点
-export const source = getObjectsByPrototype(Source)[0];
+export const sources = getObjectsByPrototype(Source);
+export const source = sources[0];
+
+// 容器
+export const containers = getObjectsByPrototype(StructureContainer);
 
 // 我方基地
 export const mySpawn = getObjectsByPrototype(StructureSpawn).filter(spawn => spawn.my)[0];
@@ -55,6 +59,7 @@ let globalCreepNum = 0;
 
 function clearCreepInfo() {
     myCreepsAll = [];
+    myMiners = [];
     myWorkers = [];
     myAttackers = [];
     myRangeAttackers = [];
@@ -63,6 +68,7 @@ function clearCreepInfo() {
     myCreepOthers = [];
 
     enemyAll = []
+    enemyMiners = [];
     enemyWorkers = [];
     enemyAttackers = [];
     enemyRangeAttackers = [];
@@ -78,9 +84,9 @@ export function freshCreepInfo() {
     clearCreepInfo();
     let allCreeps = getObjectsByPrototype(Creep);
     myCreepsAll = allCreeps.filter(creep => creep.my);
-    filterCreepInfo("我方信息", myCreepsAll, myWorkers, myAttackers, myRangeAttackers, myHealers, myCreepOthers);
+    filterCreepInfo("我方信息", myCreepsAll, myMiners, myWorkers, myAttackers, myRangeAttackers, myHealers, myCreepOthers);
     enemyAll = allCreeps.filter(creep => !creep.my);
-    filterCreepInfo("敌方信息", enemyAll, enemyWorkers, enemyAttackers, enemyRangeAttackers, enemyHealers, enemyCreepOthers);
+    filterCreepInfo("敌方信息", enemyAll, enemyMiners, enemyWorkers, enemyAttackers, enemyRangeAttackers, enemyHealers, enemyCreepOthers);
 }
 
 /**
@@ -93,28 +99,34 @@ export function freshCreepInfo() {
  * @param creepHeal
  * @param creepOther
  */
-function filterCreepInfo(type, creeps, creepWork, creepAttack, creepAttackRange, creepHeal, creepOther) {
+function filterCreepInfo(type, creeps, creepMiner, creepWork, creepAttack, creepAttackRange, creepHeal, creepOther) {
     for (let creep of creeps) {
-        if (creep.body.some(bodyPart => bodyPart.type === WORK)) {
+        if (creep.body[creep.body.length - 1].type === CARRY) {
+            creepMiner.push(creep);
+            continue;
+        }
+        if (creep.body[creep.body.length - 1].type === WORK) {
             creepWork.push(creep);
             continue;
         }
-        if (creep.body.some(bodyPart => bodyPart.type === ATTACK)) {
+        if (creep.body[creep.body.length - 1].type === ATTACK) {
             creepAttack.push(creep);
             continue;
         }
-        if (creep.body.some(bodyPart => bodyPart.type === RANGED_ATTACK)) {
+        if (creep.body[creep.body.length - 1].type === RANGED_ATTACK) {
             creepAttackRange.push(creep);
             continue;
         }
-        if (creep.body.some(bodyPart => bodyPart.type === HEAL)) {
+        if (creep.body[creep.body.length - 1].type === HEAL) {
             creepHeal.push(creep);
             continue;
         }
         creepOther.push(creep);
     }
     // console.log("creeps" , creeps);
-    console.log(type, "农民：", creepWork.length,
+    console.log(type,
+        "农民：", creepMiner.length,
+        "劳工：", creepWork.length,
         "近战：", creepAttack.length,
         "远程：", creepAttackRange.length,
         "治疗：", creepHeal.length,
@@ -140,4 +152,8 @@ export function freshMiners() {
 
 export function incrementCreepNum() {
     return globalCreepNum++;
+}
+
+export function getEnergyFrom() {
+
 }

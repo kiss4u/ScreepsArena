@@ -63,25 +63,45 @@ function createQueueConsumer(spawn) {
  * creep队列生产者
  */
 function createQueueProducer() {
-    if (myMiners.length + countQueueWaiting(minerBody) < minerSize) {
-        creepCreateQueue.push(minerBody);
+    let size = myMiners.length + countQueueWaiting(minerBody);
+    if (size < minerSize) {
+        addQueueBatch(minerBody, minerSize - size);
     }
     if (myWorkers.length + countQueueWaiting(workerBody) < workerSize) {
-        creepCreateQueue.push(workerBody);
+        addQueue(workerBody);
     }
     if (myAttackers.length + countQueueWaiting(attackerBody) < attackerSize) {
-        creepCreateQueue.push(attackerBody);
+        addQueue(attackerBody);
     }
     if (myRangeAttackers.length + countQueueWaiting(rangeAttackerBody) < rangeAttackerSize) {
-        creepCreateQueue.push(rangeAttackerBody);
+        addQueue(rangeAttackerBody);
     }
     if (myHealers.length + countQueueWaiting(healerBody) < healerSize) {
-        creepCreateQueue.push(healerBody);
+        addQueue(healerBody);
     }
     if (myCreepOthers.length + countQueueWaiting(defenderBody) < defenderSize) {
-        creepCreateQueue.push(defenderBody);
+        addQueue(defenderBody);
     }
     console.log("待生产队列数量", creepCreateQueue.length);
+}
+
+/**
+ *
+ * @param body
+ */
+function addQueue(body) {
+    addQueueBatch(body, 1);
+}
+
+/**
+ * 添加到生存队列
+ * @param body
+ * @param size
+ */
+function addQueueBatch(body, size) {
+    for (let i = 0; i < size; i++) {
+        creepCreateQueue.push(body)
+    }
 }
 
 /**
